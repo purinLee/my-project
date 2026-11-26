@@ -6,10 +6,15 @@ Run against a freshly seeded database so the screenshots show unmodified synthet
 from __future__ import annotations
 
 import argparse
+import sys
 import tempfile
 from pathlib import Path
 
+import pandas as pd
 from playwright.sync_api import Page, sync_playwright
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from catalog_intel.excel import to_xlsx_bytes  # noqa: E402
 
 OUT = Path(__file__).resolve().parent.parent / "docs" / "screenshots"
 PAGES = [("", "01_executive_overview"), ("catalog", "02_catalog_management"), ("audit", "03_quality_audit"),
@@ -64,10 +69,10 @@ def main() -> None:
         print("saved 04c_new_request_analysis")
 
         # CSV upload validation (not imported, so the demo data stays untouched)
-        csv_path = Path(tempfile.gettempdir()) / "upload_demo.csv"
-        csv_path.write_text(UPLOAD_CSV)
+        csv_path = Path(tempfile.gettempdir()) / "upload_demo.xlsx"
+        csv_path.write_bytes(to_xlsx_bytes({"Catalog": pd.read_csv(__import__("io").StringIO(UPLOAD_CSV), dtype=str, keep_default_na=False)}))
         open_page(page, base, "catalog")
-        page.get_by_role("tab", name="Upload CSV").click()
+        page.get_by_role("tab", name="Upload CSV / Excel").click()
         page.wait_for_timeout(1000)
         page.set_input_files("input[type=file]", str(csv_path))
         page.wait_for_timeout(3500)
@@ -89,6 +94,11 @@ def main() -> None:
         page.wait_for_timeout(3500)
         page.screenshot(path=str(OUT / "06b_assistant_answers.png"))
         print("saved 06b_assistant_answers")
+        page.get_by_text("LLM usage, latency and estimated cost log").click()
+        page.wait_for_timeout(1500)
+        page.get_by_text("LLM usage, latency and estimated cost log").scroll_into_view_if_needed()
+        page.screenshot(path=str(OUT / "06c_llm_usage_log.png"))
+        print("saved 06c_llm_usage_log")
         browser.close()
 
 

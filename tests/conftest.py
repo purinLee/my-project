@@ -14,10 +14,18 @@ SEED = 20260101
 
 
 @pytest.fixture(autouse=True)
-def _no_llm(monkeypatch):
-    """Tests must never call an external API."""
+def _no_llm(monkeypatch, request):
+    """Tests must never call an external API, except tests explicitly marked `live_llm` (which also need a real key)."""
+    from catalog_intel import ai
+
+    ai._PENDING.clear()
+    ai.reset_daily_counter()
+    if request.node.get_closest_marker("live_llm"):
+        yield
+        return
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.setattr("catalog_intel.ai._secret", lambda name: None)
+    yield
 
 
 @pytest.fixture(scope="session")

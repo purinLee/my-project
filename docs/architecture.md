@@ -17,10 +17,11 @@ flowchart LR
     end
 
     subgraph Core["catalog_intel/ (pure Python, no Streamlit imports)"]
-        VAL[validation.py<br/>CSV validation + import]
+        VAL[validation.py<br/>CSV / XLSX validation + import]
+        XLS[excel.py<br/>XLSX export]
         QUA[quality.py<br/>duplicates / price anomalies / images]
         CLS[classifier.py<br/>rules + priority scoring]
-        AI[ai.py<br/>optional LLM, strict JSON validation]
+        AI[ai.py<br/>optional LLM, strict JSON validation,<br/>call/cost log, daily cap]
         REQ[requests_mgmt.py<br/>lifecycle + SLA state]
         ANA[analytics.py<br/>SQL query registry + reconcile]
         AST[assistant.py<br/>intent router]
@@ -38,11 +39,15 @@ flowchart LR
     P4 --> CLS
     CLS -. optional .-> AI -.-> LLM
     P1 & P5 --> ANA --> DB
-    P1 & P5 --> REP
+    P1 & P5 --> REP --> XLS
+    P2 --> XLS
+    AI -. flush_call_log .-> DB
     P6 --> AST --> ANA
     AST --> QUA
     AST --> CLS
     SEED --> DB
+    PERF[perf.py + scripts/benchmark.py<br/>100k synthetic data, separate DB file] -.-> SEED
+    PERF --> PDB[(data/perf/*.db<br/>never the demo DB)]
     Streamlit -- "init_demo(): seed if DB empty or older than 3 days" --> SEED
 ```
 
@@ -54,6 +59,10 @@ erDiagram
     merchants ||--o{ merchant_requests : submits
     merchant_requests ||--o{ request_events : "has timeline"
     merchants ||--o{ upload_log : uploads
+    llm_call_log { int call_id PK
+                   text status
+                   int latency_ms
+                   real cost_usd }
     merchants { text merchant_id PK
                 text tier }
     products { int product_id PK

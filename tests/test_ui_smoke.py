@@ -52,3 +52,33 @@ def test_assistant_chat_flow():
     at.button(key="ex_1").click().run()
     assert not at.exception
     assert any("breached" in m.value.lower() for m in at.markdown)
+
+
+def test_assistant_llm_panel_without_key_explains_fallback():
+    at = _app("p_assistant").run()
+    assert not at.exception
+    assert any("No OPENAI_API_KEY" in i.value for i in at.info)
+
+
+def test_assistant_live_ping_is_logged_with_fake_llm(monkeypatch):
+    import json
+
+    from catalog_intel import ai
+
+    class Resp:
+        def read(self):
+            return json.dumps({"choices": [{"message": {"content": "OK"}}], "usage": {"prompt_tokens": 9, "completion_tokens": 1}}).encode()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(ai, "_secret", lambda name: "sk-test" if name == "OPENAI_API_KEY" else None)
+    monkeypatch.setattr(ai.urllib.request, "urlopen", lambda req, timeout=0: Resp())
+    at = _app("p_assistant").run()
+    at.button(key="llm_ping").click().run()
+    assert not at.exception
+    assert any("status=ok" in s.value for s in at.success)
+    assert any(m.label == "Calls logged" and int(m.value) >= 1 for m in at.metric)

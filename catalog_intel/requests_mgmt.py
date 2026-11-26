@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 
+from . import ai
 from .classifier import classify_request, recommend_priority
 from .config import (
     AT_RISK_FRACTION, OPEN_STATUSES, PRIORITIES, REQUEST_TYPES, REWORK_SOURCES, SLA_HOURS, STATUSES, TRANSITIONS,
@@ -53,6 +54,7 @@ def create_request(
     now = now or utcnow()
 
     cls = classify_request(subject, description, use_llm=use_llm)
+    ai.flush_call_log(conn)  # persist LLM call records (latency, tokens, estimated cost) made during classification
     rtype = request_type or cls.request_type
     source = "manual" if request_type else cls.source
     tier = conn.execute("SELECT tier FROM merchants WHERE merchant_id=?", (merchant_id,)).fetchone()[0]
