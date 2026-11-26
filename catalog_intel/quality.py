@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import time
 from collections import defaultdict
 from dataclasses import dataclass
 from difflib import SequenceMatcher
@@ -227,12 +228,23 @@ class AuditResult:
         }
 
 
-def run_audit(conn, z_threshold: float = PRICE_MODIFIED_Z_THRESHOLD, dup_threshold: float = NEAR_DUPLICATE_THRESHOLD) -> AuditResult:
-    products = load_products(conn)
-    pairs = find_duplicate_pairs(products, dup_threshold) if len(products) else pd.DataFrame()
+def run_audit(
+    conn, z_threshold: float = PRICE_MODIFIED_Z_THRESHOLD, dup_threshold: float = NEAR_DUPLICATE_THRESHOLD, timings: dict | None = None
+) -> AuditResult:
+    """Run every detector. If `timings` is given it is filled with seconds per detector (load, duplicates, price, image, metadata)."""
+    t = timings if timings is not None else {}
+
+    def timed(name, fn):
+        t0 = time.perf_counter()
+        out = fn()
+        t[name] = t.get(name, 0.0) + time.perf_counter() - t0
+        return out
+
+    products = timed("load", lambda: load_products(conn))
+    pairs = timed("duplicates", lambda: find_duplicate_pairs(products, dup_threshold) if len(products) else pd.DataFrame())
     parts = [
-        detect_duplicates(products, pairs), detect_price_anomalies(products, z_threshold), detect_missing_images(products),
-        detect_incomplete_metadata(products),
+        timed("duplicates", lambda: detect_duplicates(products, pairs)), timed("price", lambda: detect_price_anomalies(products, z_threshold)),
+        timed("image", lambda: detect_missing_images(products)), timed("metadata", lambda: detect_incomplete_metadata(products)),
     ]
     issues = pd.concat(parts, ignore_index=True) if products.shape[0] else _frame([])
     issues["_o"] = issues["severity"].map(SEVERITY_ORDER)

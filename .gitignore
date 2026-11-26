@@ -23,3 +23,9 @@ Thumbs.db
 
 # Performance test data (large synthetic databases; regenerate with scripts/benchmark.py)
 data/perf/
+
+# Any SQLite file and automation working folders (inbox/outbox/sandbox) are local data, never committed
+*.db
+*.db-wal
+*.db-shm
+data/automation/

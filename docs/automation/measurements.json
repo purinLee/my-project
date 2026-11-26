@@ -1,0 +1,709 @@
+{
+  "synthetic_data_notice": "ALL data is synthetic (generated, fictional merchants/products). Results do not describe real catalogs or real people.",
+  "environment": {
+    "measured_at_utc": "2026-11-26 17:02:08",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "cpu_count_logical": 8,
+    "ram_total_gb": 16.0,
+    "python": "3.10.4"
+  },
+  "workload": {
+    "files": 10,
+    "rows_total": 4990,
+    "injected_defects": {
+      "duplicate": 140,
+      "price_anomaly": 190,
+      "missing_image": 380,
+      "invalid_rows": 140
+    },
+    "seed": 777,
+    "xlsx_files": 5
+  },
+  "MEASURED": {
+    "python_automation": {
+      "runs": 5,
+      "per_run": [
+        {
+          "status": "success",
+          "seconds_total": 2.472,
+          "peak_rss_mb": 106.4,
+          "totals": {
+            "files_total": 10,
+            "files_imported": 10,
+            "files_failed": 0,
+            "files_skipped": 0,
+            "rows_total": 4990,
+            "rows_valid": 4850,
+            "rows_rejected": 140,
+            "rows_inserted": 4850,
+            "rows_updated": 0
+          },
+          "steps": {
+            "collect_validate": 1.1257,
+            "import": 0.3474,
+            "quality": 0.3033,
+            "report": 0.3438,
+            "export": 0.3313
+          },
+          "step_detail": {
+            "collect": 0.0052,
+            "validate": 1.1205,
+            "import": 0.3474,
+            "quality": 0.3033,
+            "report": 0.3438,
+            "export": 0.3313
+          },
+          "quality_detail": {
+            "load": 0.0421,
+            "duplicates": 0.0806,
+            "price": 0.0705,
+            "image": 0.0741,
+            "metadata": 0.0136
+          },
+          "findings_run_scope": {
+            "duplicates": 140,
+            "price_anomalies": 191,
+            "missing_images": 380,
+            "incomplete_metadata": 241
+          }
+        },
+        {
+          "status": "success",
+          "seconds_total": 2.271,
+          "peak_rss_mb": 108.3,
+          "totals": {
+            "files_total": 10,
+            "files_imported": 10,
+            "files_failed": 0,
+            "files_skipped": 0,
+            "rows_total": 4990,
+            "rows_valid": 4850,
+            "rows_rejected": 140,
+            "rows_inserted": 4850,
+            "rows_updated": 0
+          },
+          "steps": {
+            "collect_validate": 0.968,
+            "import": 0.3694,
+            "quality": 0.2898,
+            "report": 0.3053,
+            "export": 0.3175
+          },
+          "step_detail": {
+            "collect": 0.0051,
+            "validate": 0.9629,
+            "import": 0.3694,
+            "quality": 0.2898,
+            "report": 0.3053,
+            "export": 0.3175
+          },
+          "quality_detail": {
+            "load": 0.0397,
+            "duplicates": 0.0851,
+            "price": 0.0546,
+            "image": 0.0729,
+            "metadata": 0.0153
+          },
+          "findings_run_scope": {
+            "duplicates": 140,
+            "price_anomalies": 191,
+            "missing_images": 380,
+            "incomplete_metadata": 241
+          }
+        },
+        {
+          "status": "success",
+          "seconds_total": 3.269,
+          "peak_rss_mb": 109.0,
+          "totals": {
+            "files_total": 10,
+            "files_imported": 10,
+            "files_failed": 0,
+            "files_skipped": 0,
+            "rows_total": 4990,
+            "rows_valid": 4850,
+            "rows_rejected": 140,
+            "rows_inserted": 4850,
+            "rows_updated": 0
+          },
+          "steps": {
+            "collect_validate": 1.3032,
+            "import": 0.3964,
+            "quality": 0.5654,
+            "report": 0.4429,
+            "export": 0.5332
+          },
+          "step_detail": {
+            "collect": 0.0078,
+            "validate": 1.2954,
+            "import": 0.3964,
+            "quality": 0.5654,
+            "report": 0.4429,
+            "export": 0.5332
+          },
+          "quality_detail": {
+            "load": 0.1336,
+            "duplicates": 0.1797,
+            "price": 0.1137,
+            "image": 0.0958,
+            "metadata": 0.0173
+          },
+          "findings_run_scope": {
+            "duplicates": 140,
+            "price_anomalies": 191,
+            "missing_images": 380,
+            "incomplete_metadata": 241
+          }
+        },
+        {
+          "status": "success",
+          "seconds_total": 3.065,
+          "peak_rss_mb": 109.4,
+          "totals": {
+            "files_total": 10,
+            "files_imported": 10,
+            "files_failed": 0,
+            "files_skipped": 0,
+            "rows_total": 4990,
+            "rows_valid": 4850,
+            "rows_rejected": 140,
+            "rows_inserted": 4850,
+            "rows_updated": 0
+          },
+          "steps": {
+            "collect_validate": 1.4103,
+            "import": 0.3959,
+            "quality": 0.3519,
+            "report": 0.3399,
+            "export": 0.5414
+          },
+          "step_detail": {
+            "collect": 0.013,
+            "validate": 1.3973,
+            "import": 0.3959,
+            "quality": 0.3519,
+            "report": 0.3399,
+            "export": 0.5414
+          },
+          "quality_detail": {
+            "load": 0.0857,
+            "duplicates": 0.0819,
+            "price": 0.0523,
+            "image": 0.0902,
+            "metadata": 0.0186
+          },
+          "findings_run_scope": {
+            "duplicates": 140,
+            "price_anomalies": 191,
+            "missing_images": 380,
+            "incomplete_metadata": 241
+          }
+        },
+        {
+          "status": "success",
+          "seconds_total": 2.734,
+          "peak_rss_mb": 109.3,
+          "totals": {
+            "files_total": 10,
+            "files_imported": 10,
+            "files_failed": 0,
+            "files_skipped": 0,
+            "rows_total": 4990,
+            "rows_valid": 4850,
+            "rows_rejected": 140,
+            "rows_inserted": 4850,
+            "rows_updated": 0
+          },
+          "steps": {
+            "collect_validate": 1.1958,
+            "import": 0.3667,
+            "quality": 0.3135,
+            "report": 0.395,
+            "export": 0.4405
+          },
+          "step_detail": {
+            "collect": 0.0053,
+            "validate": 1.1905,
+            "import": 0.3667,
+            "quality": 0.3135,
+            "report": 0.395,
+            "export": 0.4405
+          },
+          "quality_detail": {
+            "load": 0.0438,
+            "duplicates": 0.1058,
+            "price": 0.0496,
+            "image": 0.0762,
+            "metadata": 0.0155
+          },
+          "findings_run_scope": {
+            "duplicates": 140,
+            "price_anomalies": 191,
+            "missing_images": 380,
+            "incomplete_metadata": 241
+          }
+        }
+      ],
+      "median_steps_s": {
+        "collect_validate": 1.1958,
+        "import": 0.3694,
+        "quality": 0.3135,
+        "report": 0.3438,
+        "export": 0.4405
+      },
+      "median_total_s": 2.734,
+      "sum_of_median_steps_s": 2.663,
+      "rows_per_hour": 6570592.5,
+      "peak_rss_mb_max": 109.4
+    },
+    "ui_rpa": {
+      "runs": 2,
+      "per_run": [
+        {
+          "status": "success",
+          "seconds_total": 83.811,
+          "steps": {
+            "collect_validate": 56.017,
+            "import": 17.29,
+            "quality": 2.847,
+            "report": 3.42,
+            "export": 1.965
+          },
+          "totals": {
+            "files_total": 10,
+            "files_imported": 10,
+            "files_failed": 0,
+            "files_skipped": 0,
+            "rows_total": 4990,
+            "rows_valid": 4850,
+            "rows_rejected": 140,
+            "rows_inserted": 4850,
+            "rows_updated": 0
+          },
+          "error": null,
+          "findings_catalog_ui": {
+            "duplicates": 140,
+            "price_anomalies": 191,
+            "missing_images": 380,
+            "incomplete_metadata": 0
+          },
+          "files": [
+            {
+              "file": "M-001_catalog_00.csv",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-002_catalog_01.csv",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-003_catalog_02.xlsx",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-004_catalog_03.xlsx",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-005_catalog_04.xlsx",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-006_catalog_05.csv",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-007_catalog_06.csv",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-008_catalog_07.xlsx",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-009_catalog_08.xlsx",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-010_catalog_09.csv",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            }
+          ]
+        },
+        {
+          "status": "success",
+          "seconds_total": 67.709,
+          "steps": {
+            "collect_validate": 49.26,
+            "import": 9.008,
+            "quality": 2.295,
+            "report": 3.411,
+            "export": 1.794
+          },
+          "totals": {
+            "files_total": 10,
+            "files_imported": 10,
+            "files_failed": 0,
+            "files_skipped": 0,
+            "rows_total": 4990,
+            "rows_valid": 4850,
+            "rows_rejected": 140,
+            "rows_inserted": 4850,
+            "rows_updated": 0
+          },
+          "error": null,
+          "findings_catalog_ui": {
+            "duplicates": 140,
+            "price_anomalies": 191,
+            "missing_images": 380,
+            "incomplete_metadata": 0
+          },
+          "files": [
+            {
+              "file": "M-001_catalog_00.csv",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-002_catalog_01.csv",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-003_catalog_02.xlsx",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-004_catalog_03.xlsx",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-005_catalog_04.xlsx",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-006_catalog_05.csv",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-007_catalog_06.csv",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-008_catalog_07.xlsx",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-009_catalog_08.xlsx",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            },
+            {
+              "file": "M-010_catalog_09.csv",
+              "status": "imported",
+              "rows": 499,
+              "valid": 485,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "median_steps_s": {
+        "collect_validate": 52.6385,
+        "import": 13.149,
+        "quality": 2.571,
+        "report": 3.4155,
+        "export": 1.8795
+      },
+      "sum_of_median_steps_s": 73.653,
+      "rows_per_hour": 243900.5,
+      "note": "Browser-driven; excludes human reading/thinking time, so it is a LOWER BOUND for a manual click-through."
+    },
+    "detection_accuracy_vs_ground_truth": {
+      "duplicate": {
+        "automation": {
+          "injected": 140,
+          "flagged": 140,
+          "true_positives": 140,
+          "missed": 0,
+          "recall": 1.0,
+          "precision": 1.0
+        },
+        "excel_style_baseline": {
+          "injected": 140,
+          "flagged": 127,
+          "true_positives": 106,
+          "missed": 34,
+          "recall": 0.7571,
+          "precision": 0.8346
+        }
+      },
+      "price_anomaly": {
+        "automation": {
+          "injected": 190,
+          "flagged": 191,
+          "true_positives": 190,
+          "missed": 0,
+          "recall": 1.0,
+          "precision": 0.9948
+        },
+        "excel_style_baseline": {
+          "injected": 190,
+          "flagged": 528,
+          "true_positives": 101,
+          "missed": 89,
+          "recall": 0.5316,
+          "precision": 0.1913
+        }
+      },
+      "missing_image": {
+        "automation": {
+          "injected": 380,
+          "flagged": 380,
+          "true_positives": 380,
+          "missed": 0,
+          "recall": 1.0,
+          "precision": 1.0
+        },
+        "excel_style_baseline": {
+          "injected": 380,
+          "flagged": 90,
+          "true_positives": 90,
+          "missed": 290,
+          "recall": 0.2368,
+          "precision": 1.0
+        }
+      },
+      "invalid_rows": {
+        "automation": {
+          "injected": 140,
+          "caught": 140,
+          "missed": 0,
+          "rejected_rows_reported": 140
+        },
+        "excel_style_baseline": {
+          "injected": 140,
+          "caught": 31,
+          "missed": 109
+        }
+      },
+      "TOTAL_omissions": {
+        "automation_missed": 0,
+        "baseline_missed": 522,
+        "omission_reduction_pct": 100.0,
+        "injected_total": 850
+      }
+    },
+    "scale_test_python_automation": {
+      "rows": 99992,
+      "files": 8,
+      "largest_file_mb": 2.97,
+      "status": "success",
+      "seconds_total": 33.694,
+      "peak_rss_mb": 440.9,
+      "steps": {
+        "collect_validate": 11.0845,
+        "import": 4.6262,
+        "quality": 6.7557,
+        "report": 5.346,
+        "export": 5.5222
+      },
+      "quality_detail": {
+        "load": 0.9755,
+        "duplicates": 3.6487,
+        "price": 0.2893,
+        "image": 1.4875,
+        "metadata": 0.2424
+      },
+      "totals": {
+        "files_total": 8,
+        "files_imported": 8,
+        "files_failed": 0,
+        "files_skipped": 0,
+        "rows_total": 99992,
+        "rows_valid": 97080,
+        "rows_rejected": 2912,
+        "rows_inserted": 97080,
+        "rows_updated": 0
+      },
+      "rows_per_second": 2967.7,
+      "rows_per_hour": 10683540.1,
+      "manual_estimated_total_s": 186345.2,
+      "estimated_time_saved_pct": 99.82
+    }
+  },
+  "ESTIMATED": {
+    "basis": "Unit-time assumptions x workload size (Excel-assisted analyst). NOT measured on people. 'End-to-end' adds the ESTIMATED human review that remains after automation.",
+    "manual_time_assumptions_s": {
+      "collect_open_per_file": 60.0,
+      "validate_per_row": 0.5,
+      "import_per_file": 20.0,
+      "import_per_row": 0.05,
+      "dedupe_per_row": 0.6,
+      "price_per_row": 0.4,
+      "image_per_row": 0.3,
+      "report_per_run": 600.0,
+      "export_per_run": 120.0,
+      "automation_review_per_run": 300.0
+    },
+    "manual_steps_s": {
+      "collect_validate": 3095.0,
+      "import": 449.5,
+      "quality": 6487.0,
+      "report": 600.0,
+      "export": 120.0
+    },
+    "manual_total_s": 10751.5,
+    "automation_review_s": 300.0,
+    "python_machine_total_s": 2.663,
+    "python_end_to_end_s": 302.663,
+    "comparison_table": [
+      {
+        "task": "Collect & validate files",
+        "kind": "task",
+        "manual_estimated_s": 3095.0,
+        "python_measured_s": 1.196,
+        "rpa_measured_s": 52.639,
+        "python_time_saved_pct": 99.96,
+        "python_speedup_x": 2588.23,
+        "rpa_time_saved_pct": 98.3
+      },
+      {
+        "task": "Import / consolidate",
+        "kind": "task",
+        "manual_estimated_s": 449.5,
+        "python_measured_s": 0.369,
+        "rpa_measured_s": 13.149,
+        "python_time_saved_pct": 99.92,
+        "python_speedup_x": 1216.84,
+        "rpa_time_saved_pct": 97.07
+      },
+      {
+        "task": "Quality checks (duplicates, price, images)",
+        "kind": "task",
+        "manual_estimated_s": 6487.0,
+        "python_measured_s": 0.314,
+        "rpa_measured_s": 2.571,
+        "python_time_saved_pct": 100.0,
+        "python_speedup_x": 20692.19,
+        "rpa_time_saved_pct": 99.96
+      },
+      {
+        "task": "Report creation",
+        "kind": "task",
+        "manual_estimated_s": 600.0,
+        "python_measured_s": 0.344,
+        "rpa_measured_s": 3.416,
+        "python_time_saved_pct": 99.94,
+        "python_speedup_x": 1745.2,
+        "rpa_time_saved_pct": 99.43
+      },
+      {
+        "task": "Excel/CSV export",
+        "kind": "task",
+        "manual_estimated_s": 120.0,
+        "python_measured_s": 0.441,
+        "rpa_measured_s": 1.879,
+        "python_time_saved_pct": 99.63,
+        "python_speedup_x": 272.42,
+        "rpa_time_saved_pct": 98.43
+      },
+      {
+        "task": "Total (machine time)",
+        "kind": "total",
+        "manual_estimated_s": 10751.5,
+        "python_measured_s": 2.663,
+        "rpa_measured_s": 73.653,
+        "python_time_saved_pct": 99.98,
+        "python_speedup_x": 4037.36,
+        "rpa_time_saved_pct": 99.31
+      },
+      {
+        "task": "Human review of automated report (ESTIMATED, remains after automation)",
+        "kind": "review",
+        "manual_estimated_s": 0.0,
+        "python_measured_s": 300.0,
+        "rpa_measured_s": 300.0,
+        "python_time_saved_pct": null,
+        "python_speedup_x": null,
+        "rpa_time_saved_pct": null
+      },
+      {
+        "task": "Total incl. human review",
+        "kind": "total_incl_review",
+        "manual_estimated_s": 10751.5,
+        "python_measured_s": 302.663,
+        "rpa_measured_s": 373.653,
+        "python_time_saved_pct": 97.18,
+        "python_speedup_x": 35.52,
+        "rpa_time_saved_pct": 96.52
+      }
+    ],
+    "time_saved_pct_python": 97.18,
+    "time_saved_pct_python_machine_only": 99.98,
+    "speedup_x_python": 35.52,
+    "speedup_x_python_machine_only": 4037.36,
+    "productivity_gain_pct_python": 3452.0,
+    "manual_rows_per_hour": 1670.8,
+    "python_end_to_end_rows_per_hour": 59353.1,
+    "monthly_saved_hours_at_4_runs": 11.61,
+    "monthly_saved_hours_at_20_runs": 58.05,
+    "rpa_end_to_end_s": 373.653,
+    "time_saved_pct_rpa": 96.52,
+    "speedup_x_rpa": 28.77
+  }
+}

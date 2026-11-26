@@ -94,6 +94,43 @@ CREATE TABLE IF NOT EXISTS llm_call_log (
     error             TEXT
 );
 
+CREATE TABLE IF NOT EXISTS automation_runs (
+    run_id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    started_at          TEXT NOT NULL,
+    finished_at         TEXT,
+    mode                TEXT NOT NULL CHECK (mode IN ('python','rpa_ui')),
+    trigger_source      TEXT NOT NULL,
+    target              TEXT NOT NULL,
+    status              TEXT NOT NULL CHECK (status IN ('success','partial','failed','nothing_to_do')),
+    files_total         INTEGER NOT NULL DEFAULT 0,
+    files_imported      INTEGER NOT NULL DEFAULT 0,
+    files_failed        INTEGER NOT NULL DEFAULT 0,
+    files_skipped       INTEGER NOT NULL DEFAULT 0,
+    rows_total          INTEGER NOT NULL DEFAULT 0,
+    rows_valid          INTEGER NOT NULL DEFAULT 0,
+    rows_rejected       INTEGER NOT NULL DEFAULT 0,
+    rows_inserted       INTEGER NOT NULL DEFAULT 0,
+    rows_updated        INTEGER NOT NULL DEFAULT 0,
+    duplicates          INTEGER NOT NULL DEFAULT 0,
+    price_anomalies     INTEGER NOT NULL DEFAULT 0,
+    missing_images      INTEGER NOT NULL DEFAULT 0,
+    incomplete_metadata INTEGER NOT NULL DEFAULT 0,
+    seconds_total       REAL,
+    step_seconds        TEXT,
+    details             TEXT,
+    error               TEXT,
+    workload_label      TEXT
+);
+
+CREATE TABLE IF NOT EXISTS automation_files (
+    sha256      TEXT PRIMARY KEY,
+    filename    TEXT NOT NULL,
+    merchant_id TEXT NOT NULL,
+    rows_valid  INTEGER NOT NULL,
+    run_id      INTEGER,
+    imported_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS upload_log (
     upload_id     INTEGER PRIMARY KEY AUTOINCREMENT,
     merchant_id   TEXT NOT NULL,
@@ -107,7 +144,7 @@ CREATE TABLE IF NOT EXISTS upload_log (
 );
 """
 
-TABLES = ["merchants", "products", "merchant_requests", "request_events", "upload_log", "app_meta"]
+TABLES = ["merchants", "products", "merchant_requests", "request_events", "upload_log", "app_meta", "automation_files"]
 
 
 @contextmanager
