@@ -76,8 +76,19 @@ def test_automation_beats_excel_style_baseline_on_omissions(wl, sandbox):
 
 def test_workload_is_reproducible_and_synthetic():
     a, b = generate_workload(2, 100, seed=9), generate_workload(2, 100, seed=9)
-    assert [d for _, d in a.files] == [d for _, d in b.files] and a.injected_counts == b.injected_counts
-    assert generate_workload(2, 100, seed=10).files[0][1] != a.files[0][1]
+    def content(name, data):
+        if not name.endswith(".xlsx"):
+            return data
+        from io import BytesIO
+
+        from openpyxl import load_workbook
+
+        return [list(r) for r in load_workbook(BytesIO(data), read_only=True).active.iter_rows(values_only=True)]
+
+    # XLSX bytes embed a creation timestamp, so compare the cell contents rather than the raw bytes
+    assert [(n, content(n, d)) for n, d in a.files] == [(n, content(n, d)) for n, d in b.files] and a.injected_counts == b.injected_counts
+    c = generate_workload(2, 100, seed=10)
+    assert content(*c.files[0]) != content(*a.files[0])
     assert all(n.startswith("M-") for n, _ in a.files)
 
 

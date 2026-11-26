@@ -6,6 +6,7 @@ An operations-management application for e-commerce marketplaces: it audits merc
 
 - **Repository:** https://github.com/purinLee/my-project (local commits only so far; nothing has been pushed)
 - **Live demo:** https://merchant-catalog-intel.streamlit.app (public, no login; synthetic data only; see [Deployment](#deployment-to-streamlit-community-cloud) for what was and was not verified on it)
+- **Status: a demo / verification build, not a production system.** The hosted copy runs on Streamlit Community Cloud's ephemeral filesystem: after an app restart or *Reboot* the SQLite database is recreated from the seed script, so uploads, automation run history and the LLM log are lost (verified by rebooting the deployed app). It uses synthetic data only and has no authentication.
 
 ## What is verified, and how
 
@@ -184,6 +185,14 @@ python scripts/summarize_benchmarks.py                                          
 
 Do not point the running app (`CATALOG_DB_PATH`) at a performance database: the demo auto-refresh would regenerate it after 3 days.
 
+### Beyond 100,000 rows: what is known and what is not
+
+Only 10k / 25k / 100k products were measured; nothing larger was run, so everything below is an engineering assessment, not a measurement.
+
+- **Already in place:** SQLite indexes on `products(merchant_id)`, `products(category)`, `UNIQUE(merchant_id, sku)`, request status/merchant/created and event lookups; imports are upserts in one transaction per file; duplicate detection is blocked by merchant/brand/category and title-number signature, so it is no longer quadratic over the whole table (measured: 25k -> 100k rows went from 1.6 s to 8.3 s in the audit).
+- **Likely bottlenecks at millions of rows:** (1) the quality audit loads the whole product table into one pandas DataFrame (peak 383-441 MB at 100k; memory should grow roughly linearly with rows, which is an extrapolation, so millions of rows would need GBs); (2) audit results are recomputed in full rather than incrementally; (3) XLSX export is slow (about 50 s per 100k rows) and is capped; (4) SQLite allows one writer at a time and lives on a single file.
+- **What a larger deployment would need:** chunked / per-merchant audits (the duplicate blocks are already per merchant, so this is a natural split), incremental audits on changed rows, additional indexes chosen from real query plans, and a server database (for example PostgreSQL) with a durable store instead of a local file. None of this is implemented here.
+
 ## Seed scripts
 
 ```bash
@@ -257,6 +266,7 @@ Verified on the live URL with a fresh anonymous Playwright browser (no cookies, 
 - SQLite on an ephemeral filesystem: UI-written data is not durable on Community Cloud; concurrent writers are serialised.
 - **LLM path never exercised against a live provider**; the default model name is unverified; cost figures are estimates; the daily cap is per server process and resets on restart.
 - Performance numbers come from one local machine and one run each; the 100,000-row dataset uses only 12 merchants (about 8,300 products each), which is a deliberate stress case for per-merchant duplicate detection but not a real marketplace distribution. The synthetic titles share a rigid structure, so detector precision/recall on real catalogs will differ.
+- Idempotency is by SHA-256 of the file bytes. A CSV re-sent unchanged is skipped; a file re-saved with identical rows but different bytes (any XLSX re-export, because XLSX embeds a timestamp) counts as a new file and is re-imported. That is safe (upsert by merchant + SKU, tested) but it is reported as an import, not a skip.
 - Excel: first sheet only, `.xlsx` only; writing is slow for very large tables (about 50 s per 100,000 rows) and the UI disables it above 50,000 rows.
 - The 5 MB upload limit caps uploads at roughly 18,000 rows of typical width.
 - Duplicate detection works within one merchant and compares titles only. Price anomalies use a statistical rule and can flag legitimate premium or clearance products.

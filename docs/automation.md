@@ -18,7 +18,7 @@ Decision rule used in this project: **use Python wherever the logic is importabl
 
 `run_pipeline` / `run_inbox` (CLI: `scripts/run_automation.py`, dashboard: *Automation Performance -> Run automation*):
 
-1. **Collect** - read CSV/XLSX files from an inbox folder (ignoring `~$` lock files, `.part` files and files still being written), compute SHA-256, route each file to a merchant by file name (`M-001_*.csv`) or a default merchant, skip files already imported.
+1. **Collect** - read CSV/XLSX files from an inbox folder (ignoring `~$` lock files, `.part` files and files still being written), compute SHA-256, route each file to a merchant by file name (`M-001_*.csv`) or a default merchant, skip files already imported. The skip decision is by hash of the file bytes: an unchanged CSV is skipped, but an XLSX re-exported with identical rows has different bytes (embedded timestamp) and is imported again as an upsert (no duplicate rows).
 2. **Validate** - format and required fields (SKU, title, price, currency, status, limits); bad rows are rejected with row numbers; unreadable files fail individually.
 3. **Import** - one transaction per file together with its hash record (no partial imports; a crash cannot cause a double import); transient SQLite lock errors are retried with back-off.
 4. **Quality checks** - duplicate detection, price anomaly detection, missing/invalid/placeholder image detection, metadata completeness, over the target catalog, with per-detector timings.

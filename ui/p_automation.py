@@ -185,7 +185,7 @@ def _run_panel() -> None:
         c1, c2, c3 = st.columns(3)
         n_files = c1.slider("Files", 1, 10, 4)
         rows = c2.slider("Rows per file", 50, 500, 200, 50)
-        fresh = c3.checkbox("New random data each run", value=True, help="Off = identical files every time; the automation then skips them as already imported (idempotency).")
+        fresh = c3.checkbox("New random data each run", value=True, help="Off = same seed every time. CSV files are then identical and skipped as already imported (idempotency by file hash); XLSX files embed a creation timestamp, so they are treated as new files and re-imported (an upsert by merchant + SKU, so no duplicate rows).")
         if st.button("Run Python automation", type="primary", key="run_py_gen"):
             seed = int(time.time()) % 1_000_000 if fresh else 777
             wl = generate_workload(n_files, rows, seed=seed)
