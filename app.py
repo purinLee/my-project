@@ -7,7 +7,7 @@ from catalog_intel import ai  # noqa: E402
 from catalog_intel.config import ROOT, get_db_path  # noqa: E402
 from catalog_intel.seed import seed_database  # noqa: E402
 from ui import common  # noqa: E402
-from ui import p_assistant, p_audit, p_catalog, p_overview, p_requests, p_sql  # noqa: E402
+from ui import p_assistant, p_audit, p_automation, p_catalog, p_overview, p_requests, p_sql  # noqa: E402
 
 common.inject_css()
 try:
@@ -25,6 +25,7 @@ pages = [
     st.Page(p_audit.render, title="Catalog Quality Audit", icon=":material/fact_check:", url_path="audit"),
     st.Page(p_requests.render, title="Merchant Requests", icon=":material/support_agent:", url_path="requests"),
     st.Page(p_sql.render, title="SQL Operations Analytics", icon=":material/database:", url_path="sql"),
+    st.Page(p_automation.render, title="Automation Performance", icon=":material/bolt:", url_path="automation"),
     st.Page(p_assistant.render, title="AI Operations Assistant", icon=":material/smart_toy:", url_path="assistant"),
 ]
 nav = st.navigation(pages, position="sidebar")

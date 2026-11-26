@@ -82,3 +82,13 @@ def test_assistant_live_ping_is_logged_with_fake_llm(monkeypatch):
     assert not at.exception
     assert any("status=ok" in s.value for s in at.success)
     assert any(m.label == "Calls logged" and int(m.value) >= 1 for m in at.metric)
+
+
+def test_automation_dashboard_renders_and_runs_pipeline():
+    at = _app("p_automation").run()
+    assert not at.exception, [e.value for e in at.exception]
+    html = " ".join(m.value for m in at.markdown)
+    assert "MEASURED" in html and "ESTIMATED" in html and "SYNTHETIC" in html
+    at.button(key="run_py_gen").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert any("Run #" in s.value and "success" in s.value for s in at.success)
