@@ -204,11 +204,11 @@ class AuditResult:
         }
 
 
-def run_audit(conn) -> AuditResult:
+def run_audit(conn, z_threshold: float = PRICE_MODIFIED_Z_THRESHOLD, dup_threshold: float = NEAR_DUPLICATE_THRESHOLD) -> AuditResult:
     products = load_products(conn)
-    pairs = find_duplicate_pairs(products) if len(products) else pd.DataFrame()
+    pairs = find_duplicate_pairs(products, dup_threshold) if len(products) else pd.DataFrame()
     parts = [
-        detect_duplicates(products, pairs), detect_price_anomalies(products), detect_missing_images(products),
+        detect_duplicates(products, pairs), detect_price_anomalies(products, z_threshold), detect_missing_images(products),
         detect_incomplete_metadata(products),
     ]
     issues = pd.concat(parts, ignore_index=True) if products.shape[0] else _frame([])

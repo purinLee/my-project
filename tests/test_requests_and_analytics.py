@@ -221,3 +221,18 @@ def test_sql_console_reports_sql_errors_gracefully(seeded):
         run_readonly_query("SELECT * FROM missing_table", path=seeded[0])
     with pytest.raises(UnsafeSQLError):
         run_readonly_query("SELECT :now", path=seeded[0])
+
+
+def test_reconcile_all_checks_match(conn):
+    rec = analytics.reconcile(conn, AS_OF)
+    assert len(rec) >= 7 and rec["match"].all()
+
+
+def test_stage_durations_match_pandas(conn):
+    sql = analytics.run_query(conn, "stage_durations").set_index("stage").sort_index()
+    ev = pd.read_sql_query("SELECT * FROM request_events ORDER BY request_id, created_at, event_id", conn)
+    ev["created_at"] = pd.to_datetime(ev["created_at"])
+    ev["hours"] = (ev.groupby("request_id")["created_at"].shift(-1) - ev["created_at"]).dt.total_seconds() / 3600
+    exp = ev.dropna(subset=["hours"]).groupby("to_status")["hours"].agg(["count", "mean"]).sort_index()
+    assert (sql["transitions"] == exp["count"]).all()
+    assert ((sql["avg_hours"] - exp["mean"]).abs() <= 0.051).all()

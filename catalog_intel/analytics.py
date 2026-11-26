@@ -84,6 +84,19 @@ ORDER BY CASE status WHEN 'New' THEN 1 WHEN 'Triaged' THEN 2 WHEN 'In Progress' 
                      WHEN 'In Review' THEN 5 WHEN 'Resolved' THEN 6 WHEN 'Closed' THEN 7 ELSE 8 END""",
         ),
         Query(
+            "stage_durations", "Time spent in each lifecycle stage",
+            "Uses a LEAD() window over request_events: hours between entering a stage and the next transition.",
+            """SELECT to_status AS stage, COUNT(*) AS transitions, ROUND(AVG(hours), 1) AS avg_hours, ROUND(MAX(hours), 1) AS max_hours
+FROM (
+  SELECT to_status,
+         (julianday(LEAD(created_at) OVER (PARTITION BY request_id ORDER BY created_at, event_id)) - julianday(created_at)) * 24 AS hours
+  FROM request_events
+)
+WHERE hours IS NOT NULL
+GROUP BY to_status
+ORDER BY avg_hours DESC""",
+        ),
+        Query(
             "backlog_aging", "Open backlog with SLA state",
             "Open requests ordered by urgency. hours_to_due is negative once the SLA has been breached.",
             f"""SELECT request_id, merchant_id, request_type, priority, status, assignee, created_at, due_at,
@@ -201,4 +214,28 @@ def generate_insights(kpis: dict, by_type_rework: pd.DataFrame, sla_priority: pd
     if not by_type_rework.empty:
         top = by_type_rework.iloc[0]
         out.append(("info", f"'{top['request_type']}' has the highest rework rate ({top['rework_rate_pct']}%) - review intake checklists for this type."))
+    return out
+
+
+def reconcile(conn, now: datetime | None = None) -> pd.DataFrame:
+    """Cross-check headline KPIs: SQL aggregates vs. an independent pandas computation on the raw rows."""
+    now = now or utcnow()
+    k = kpi_summary(conn, now)
+    raw = pd.read_sql_query("SELECT * FROM merchant_requests", conn)
+    for c in ("created_at", "due_at", "resolved_at"):
+        raw[c] = pd.to_datetime(raw[c])
+    done = raw[raw["resolved_at"].notna()]
+    open_ = raw[raw["status"].isin(["New", "Triaged", "In Progress", "Waiting on Merchant", "In Review"])]
+    hours = (done["resolved_at"] - done["created_at"]).dt.total_seconds() / 3600
+    checks = [
+        ("Total requests", k["total_requests"], len(raw)),
+        ("Open requests", k["open_requests"], len(open_)),
+        ("Completed requests", k["completed_requests"], len(done)),
+        ("SLA compliance %", k["sla_compliance_pct"], round(100 * (done["resolved_at"] <= done["due_at"]).mean(), 1)),
+        ("Rework rate %", k["rework_rate_pct"], round(100 * (done["rework_count"] > 0).mean(), 1)),
+        ("Avg processing hours", k["avg_processing_hours"], round(hours.mean(), 1)),
+        ("Breached open requests", k["breached_open"], int((open_["due_at"] < pd.Timestamp(now)).sum())),
+    ]
+    out = pd.DataFrame(checks, columns=["metric", "sql_value", "pandas_value"])
+    out["match"] = (out["sql_value"] - out["pandas_value"]).abs() < 1e-9
     return out
