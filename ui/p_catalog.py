@@ -3,10 +3,11 @@ import streamlit as st
 
 from catalog_intel.config import CURRENCIES
 from catalog_intel.quality import load_products
+from catalog_intel.excel import sample_upload_xlsx
 from catalog_intel.reports import to_csv_bytes
-from catalog_intel.validation import SAMPLE_CSV, UploadError, import_products, validate_csv_bytes, validate_dataframe
+from catalog_intel.validation import SAMPLE_CSV, UploadError, import_products, validate_dataframe, validate_upload_bytes
 from catalog_intel.db import query_df
-from ui.common import db, flash, fmt_num, kpi_row, page_header, section, show_fig, show_flash
+from ui.common import XLSX_MIME, db, download_table, flash, fmt_num, kpi_row, page_header, section, show_fig, show_flash
 import plotly.express as px
 
 
@@ -50,8 +51,7 @@ def render() -> None:
             hide_index=True, width="stretch", height=430,
             column_config={"price": st.column_config.NumberColumn("Price", format="%.2f"), "merchant_name": "Merchant", "image_url": "Image URL"},
         )
-        d1, d2 = st.columns([1, 3])
-        d1.download_button("Export filtered CSV", to_csv_bytes(view.drop(columns=["product_id"])), "catalog_export.csv", "text/csv")
+        download_table(view.drop(columns=["product_id"]), "catalog_export", "Export filtered", sheet="Catalog")
         if len(view):
             agg = view.groupby("category", as_index=False).agg(products=("sku", "count"), avg_price=("price", "mean"))
             fig = px.bar(agg.sort_values("products"), x="products", y="category", orientation="h", color_discrete_sequence=["#4f46e5"])
@@ -59,14 +59,15 @@ def render() -> None:
             show_fig(fig, 300, "Products by category (filtered)")
 
     with tab_upload:
-        st.markdown("Upload a CSV with at least **sku, title, price**. Optional: brand, category, currency, image_url, description, status. Max 5 MB / 20,000 rows. Existing SKUs are updated, new SKUs are inserted.")
-        c1, c2 = st.columns([2, 1])
+        st.markdown("Upload a **CSV or Excel (.xlsx)** file with at least **sku, title, price**. Optional: brand, category, currency, image_url, description, status. Excel: first sheet only, formulas are not evaluated. Max 5 MB / 20,000 rows. Existing SKUs are updated, new SKUs are inserted.")
+        c1, c2, c3 = st.columns([2, 0.6, 0.6])
         mid = c1.selectbox("Target merchant", list(names), format_func=lambda m: f"{m} - {names[m]}", key="up_merchant")
-        c2.download_button("Download CSV template", SAMPLE_CSV, "catalog_template.csv", "text/csv")
-        file = st.file_uploader("CSV file", type=["csv"], accept_multiple_files=False, key="up_file")
+        c2.download_button("CSV template", SAMPLE_CSV, "catalog_template.csv", "text/csv", key="tpl_csv")
+        c3.download_button("Excel template", lambda: sample_upload_xlsx(SAMPLE_CSV), "catalog_template.xlsx", XLSX_MIME, key="tpl_xlsx", on_click="ignore")
+        file = st.file_uploader("CSV or Excel file", type=["csv", "xlsx"], accept_multiple_files=False, key="up_file")
         if file is not None:
             try:
-                report = validate_csv_bytes(file.getvalue())
+                report = validate_upload_bytes(file.getvalue(), file.name)
             except UploadError as exc:
                 st.error(f"Upload rejected: {exc}")
                 report = None
@@ -80,7 +81,7 @@ def render() -> None:
                 if len(report.rejected):
                     st.markdown("**Rejected rows** (row numbers include the header row)")
                     st.dataframe(report.rejected, hide_index=True, width="stretch")
-                    st.download_button("Download rejected rows", to_csv_bytes(report.rejected), "rejected_rows.csv", "text/csv")
+                    download_table(report.rejected, "rejected_rows", "Rejected rows", sheet="Rejected")
                 if report.ok:
                     st.markdown("**Preview of valid rows**")
                     st.dataframe(report.valid.head(20), hide_index=True, width="stretch")

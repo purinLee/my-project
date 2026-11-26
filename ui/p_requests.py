@@ -5,9 +5,8 @@ from catalog_intel import analytics
 from catalog_intel.classifier import classify_request, recommend_priority
 from catalog_intel.config import CHANNELS, OPEN_STATUSES, PRIORITIES, PRIORITY_LABELS, REQUEST_TYPES, SLA_HOURS, STATUSES, TRANSITIONS
 from catalog_intel.db import query_df
-from catalog_intel.reports import to_csv_bytes
 from catalog_intel.requests_mgmt import ValidationError, allowed_transitions, assign_request, create_request, get_events, load_requests, transition_request
-from ui.common import db, flash, fmt_num, kpi_row, now, page_header, pill, section, show_fig, show_flash
+from ui.common import db, download_table, flash, fmt_num, kpi_row, now, page_header, pill, section, show_fig, show_flash
 
 SLA_TONE = {"Breached": "bad", "At Risk": "warn", "On Track": "good", "Met": "good", "Missed": "bad", "N/A": "neutral"}
 
@@ -65,7 +64,7 @@ def render() -> None:
             view[cols], hide_index=True, width="stretch", height=380, on_select="rerun", selection_mode="single-row", key="req_table",
             column_config={"hours_to_due": st.column_config.NumberColumn("Hours to due", format="%.1f"), "merchant_name": "Merchant", "sla_state": "SLA", "rework_count": st.column_config.NumberColumn("Rework", format="%d")},
         )
-        st.download_button("Export queue (CSV)", to_csv_bytes(view.drop(columns=["description"])), "requests_export.csv", "text/csv")
+        download_table(view.drop(columns=["description"]), "requests_export", "Export queue", sheet="Requests")
 
         rows = ev.selection.rows if ev and ev.selection else []
         if rows and rows[0] < len(view):

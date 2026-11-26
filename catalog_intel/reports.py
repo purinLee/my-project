@@ -8,6 +8,7 @@ import pandas as pd
 
 from .analytics import generate_insights, kpi_summary, run_query
 from .config import DEMO_DATA_NOTICE, fmt, utcnow
+from .excel import to_xlsx_bytes
 from .quality import AuditResult
 
 _FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
@@ -25,6 +26,32 @@ def to_csv_bytes(df: pd.DataFrame) -> bytes:
     for col in safe.select_dtypes(include=["object", "string"]).columns:
         safe[col] = safe[col].map(sanitize_cell)
     return safe.to_csv(index=False).encode("utf-8-sig")
+
+
+def to_excel_bytes(df: pd.DataFrame, sheet_name: str = "Data") -> bytes:
+    return to_xlsx_bytes({sheet_name: df})
+
+
+def executive_report_xlsx(conn, audit: AuditResult, now: datetime | None = None) -> bytes:
+    """Multi-sheet Excel workbook with the same figures as the HTML executive report."""
+    now = now or utcnow()
+    k = kpi_summary(conn, now)
+    labels = {
+        "open_requests": "Open requests", "p1_open": "P1 open", "sla_compliance_pct": "SLA compliance %", "rework_rate_pct": "Rework rate %",
+        "avg_processing_hours": "Avg processing hours", "avg_first_response_hours": "Avg first response hours",
+        "breached_open": "Breached (open)", "at_risk_open": "At risk (open)", "completed_requests": "Completed requests",
+        "total_requests": "Total requests", "products": "Products (non-archived)", "merchants": "Merchants",
+    }
+    kpis = pd.DataFrame({"metric": list(labels.values()), "value": [k[key] for key in labels]})
+    kpis.loc[len(kpis)] = ["Catalog clean rate %", audit.summary["clean_rate"]]
+    kpis.loc[len(kpis)] = ["Reference time (UTC)", fmt(now)]
+    return to_xlsx_bytes({
+        "KPIs": kpis,
+        "SLA by priority": run_query(conn, "sla_by_priority", now),
+        "Processing time": run_query(conn, "processing_time_by_type", now),
+        "Rework by type": run_query(conn, "rework_by_type", now),
+        "Quality findings": audit.issues,
+    })
 
 
 def _table(df: pd.DataFrame, max_rows: int = 15) -> str:

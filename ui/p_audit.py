@@ -4,8 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from catalog_intel.reports import to_csv_bytes
-from ui.common import SEVERITY_COLORS, cached_audit, data_version, fmt_num, kpi_row, page_header, section, show_fig
+from ui.common import SEVERITY_COLORS, cached_audit, data_version, download_table, fmt_num, kpi_row, page_header, section, show_fig
 
 ISSUE_ORDER = ["Duplicate Listing", "Price Anomaly", "Invalid Price", "Missing Image", "Incomplete Metadata"]
 
@@ -56,7 +55,7 @@ def render() -> None:
             mt = st.multiselect("Match type", pairs["match_type"].unique().tolist(), default=pairs["match_type"].unique().tolist(), key="dup_mt")
             view = pairs[pairs["match_type"].isin(mt)]
             st.dataframe(view, hide_index=True, width="stretch", height=380, column_config={"similarity": st.column_config.ProgressColumn("Similarity", min_value=0.8, max_value=1.0, format="%.3f")})
-            st.download_button("Export duplicate pairs (CSV)", to_csv_bytes(view), "duplicate_pairs.csv", "text/csv")
+            download_table(view, "duplicate_pairs", "Export duplicate pairs", sheet="Duplicates")
 
     with tabs[1]:
         pa = iss[iss["issue_type"].isin(["Price Anomaly", "Invalid Price"])]
@@ -67,7 +66,7 @@ def render() -> None:
         fig.update_layout(xaxis_title=None, yaxis_title="Price (log scale)", legend_title=None)
         show_fig(fig, 380, "Price distribution by category - anomalies highlighted")
         st.dataframe(pa.drop(columns=["product_id"]), hide_index=True, width="stretch", height=300)
-        st.download_button("Export price anomalies (CSV)", to_csv_bytes(pa), "price_anomalies.csv", "text/csv")
+        download_table(pa, "price_anomalies", "Export price anomalies", sheet="Price anomalies")
 
     with tabs[2]:
         mi = iss[iss["issue_type"] == "Missing Image"]
@@ -75,7 +74,7 @@ def render() -> None:
         by_m["missing_pct"] = (100 * by_m["missing"] / by_m["products"]).round(1)
         st.dataframe(by_m.sort_values("missing_pct", ascending=False)[["merchant_name", "products", "missing", "missing_pct"]], hide_index=True, width="stretch")
         st.dataframe(mi.drop(columns=["product_id"]), hide_index=True, width="stretch", height=300)
-        st.download_button("Export missing images (CSV)", to_csv_bytes(mi), "missing_images.csv", "text/csv")
+        download_table(mi, "missing_images", "Export missing images", sheet="Missing images")
 
     with tabs[3]:
         inc = iss[iss["issue_type"] == "Incomplete Metadata"]
@@ -95,4 +94,4 @@ def render() -> None:
             view = view[view["merchant_id"].isin(fm)]
         st.caption(f"{len(view):,} findings")
         st.dataframe(view.drop(columns=["product_id"]), hide_index=True, width="stretch", height=400)
-        st.download_button("Export findings (CSV)", to_csv_bytes(view), "quality_findings.csv", "text/csv", type="primary")
+        download_table(view, "quality_findings", "Export findings", primary=True, sheet="Findings")

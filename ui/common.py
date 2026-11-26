@@ -13,6 +13,7 @@ import streamlit as st
 from catalog_intel.config import DEMO_DATA_NOTICE, utcnow
 from catalog_intel.db import connect
 from catalog_intel.quality import run_audit
+from catalog_intel.reports import to_csv_bytes, to_excel_bytes
 from catalog_intel.seed import ensure_demo_data
 
 PALETTE = ["#4f46e5", "#06b6d4", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#64748b", "#ec4899"]
@@ -162,6 +163,17 @@ def data_version() -> str:
 def cached_audit(version: str, z: float, dup: float):
     with db(readonly=True) as c:
         return run_audit(c, z, dup)
+
+
+XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+def download_table(df: pd.DataFrame, stem: str, label: str = "Export", key: str | None = None, primary: bool = False, sheet: str = "Data") -> None:
+    """CSV and Excel download buttons. Data is generated on click (deferred), not on every rerun."""
+    kind = "primary" if primary else "secondary"
+    c1, c2, _ = st.columns([1, 1, 3])
+    c1.download_button(f"{label} (CSV)", lambda: to_csv_bytes(df), f"{stem}.csv", "text/csv", key=f"{key or stem}_csv", type=kind, on_click="ignore")
+    c2.download_button(f"{label} (Excel)", lambda: to_excel_bytes(df, sheet), f"{stem}.xlsx", XLSX_MIME, key=f"{key or stem}_xlsx", type=kind, on_click="ignore")
 
 
 def flash(kind: str, message: str) -> None:

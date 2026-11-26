@@ -1,8 +1,10 @@
-"""CSV upload validation and import."""
+"""CSV / XLSX upload validation and import."""
 from __future__ import annotations
 
+import datetime as dt
 import io
 import re
+import zipfile
 from dataclasses import dataclass, field
 
 import pandas as pd
@@ -75,6 +77,87 @@ def read_csv_bytes(data: bytes) -> pd.DataFrame:
     if len(df) > MAX_UPLOAD_ROWS:
         raise UploadError(f"Too many rows ({len(df):,}). Maximum is {MAX_UPLOAD_ROWS:,} per upload.")
     return df
+
+
+MAX_XLSX_UNCOMPRESSED_BYTES = 100 * 1024 * 1024  # guards against decompression bombs
+UPLOAD_EXTENSIONS = ("csv", "xlsx")
+
+
+def _xlsx_cell(v) -> str:
+    if v is None:
+        return ""
+    if isinstance(v, bool):
+        return str(v)
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))  # 12345.0 -> "12345" so numeric SKUs stay clean
+    if isinstance(v, (dt.datetime, dt.date)):
+        return v.isoformat()
+    return str(v)
+
+
+def read_xlsx_bytes(data: bytes) -> pd.DataFrame:
+    """Read the first worksheet of an .xlsx file into a string DataFrame.
+
+    Formulas are never evaluated (`data_only=True` returns cached values only), the workbook is opened
+    read-only, and size / uncompressed-size / row limits are enforced before and during parsing.
+    Extra sheets are ignored and reported via ``df.attrs['notes']``.
+    """
+    from openpyxl import load_workbook
+
+    if not data:
+        raise UploadError("The file is empty.")
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise UploadError(f"File is too large ({len(data) / 1e6:.1f} MB). Maximum is {MAX_UPLOAD_BYTES / 1e6:.0f} MB.")
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            if sum(i.file_size for i in zf.infolist()) > MAX_XLSX_UNCOMPRESSED_BYTES:
+                raise UploadError("The workbook expands to more than 100 MB and was rejected.")
+    except zipfile.BadZipFile as exc:
+        raise UploadError("Not a valid .xlsx file (legacy .xls and renamed files are not supported).") from exc
+    try:
+        wb = load_workbook(io.BytesIO(data), read_only=True, data_only=True)
+    except Exception as exc:  # noqa: BLE001 - openpyxl raises many types for corrupt files
+        raise UploadError(f"Could not read the Excel file: {exc}") from exc
+    try:
+        ws = wb.worksheets[0]
+        notes = [f"Only the first sheet ('{ws.title}') was read; {len(wb.worksheets) - 1} other sheet(s) ignored."] if len(wb.worksheets) > 1 else []
+        rows = ws.iter_rows(values_only=True)
+        header = next(rows, None)
+        if header is None or not any(c not in (None, "") for c in header):
+            raise UploadError("The first sheet is empty (the first row must contain column headers).")
+        keep = [i for i, c in enumerate(header) if c not in (None, "")]
+        body: list[list[str]] = []
+        for row in rows:
+            cells = [_xlsx_cell(row[i]) if i < len(row) else "" for i in keep]
+            if not any(cells):
+                continue
+            body.append(cells)
+            if len(body) > MAX_UPLOAD_ROWS:
+                raise UploadError(f"Too many rows (more than {MAX_UPLOAD_ROWS:,}). Maximum is {MAX_UPLOAD_ROWS:,} per upload.")
+    finally:
+        wb.close()
+    if not body:
+        raise UploadError("The sheet has a header but no data rows.")
+    df = pd.DataFrame(body, columns=[str(header[i]) for i in keep], dtype=str)
+    df.attrs["notes"] = notes
+    return df
+
+
+def read_upload_bytes(data: bytes, filename: str = "") -> pd.DataFrame:
+    """Dispatch on extension (falling back to the ZIP magic bytes) to the CSV or XLSX reader."""
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    if ext == "xlsx" or (ext not in UPLOAD_EXTENSIONS and data[:2] == b"PK"):
+        return read_xlsx_bytes(data)
+    if ext == "csv" or ext == "":
+        return read_csv_bytes(data)
+    raise UploadError(f"Unsupported file type '.{ext}'. Upload a .csv or .xlsx file.")
+
+
+def validate_upload_bytes(data: bytes, filename: str = "") -> "ValidationReport":
+    raw = read_upload_bytes(data, filename)
+    report = validate_dataframe(raw)
+    report.warnings = list(raw.attrs.get("notes", [])) + report.warnings
+    return report
 
 
 def validate_dataframe(raw: pd.DataFrame) -> ValidationReport:

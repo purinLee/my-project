@@ -3,9 +3,9 @@ import streamlit as st
 
 from catalog_intel import analytics
 from catalog_intel.db import UnsafeSQLError, run_readonly_query, validate_readonly_sql
-from catalog_intel.reports import executive_report_html, to_csv_bytes
+from catalog_intel.reports import executive_report_html, executive_report_xlsx, to_csv_bytes
 from catalog_intel.requests_mgmt import load_requests
-from ui.common import cached_audit, data_version, db, now, page_header, section, show_fig
+from ui.common import XLSX_MIME, cached_audit, data_version, db, download_table, now, page_header, section, show_fig
 
 SCHEMA_REF = """merchants(merchant_id, name, tier, region, vertical, onboarded_at)
 products(product_id, merchant_id, sku, title, brand, category, price, currency, image_url, description, status, created_at, updated_at)
@@ -53,7 +53,7 @@ def render() -> None:
                 fig.update_layout(xaxis_title=None, yaxis_title=None, legend_title=None)
                 show_fig(fig, 300, q.title)
         st.dataframe(df, hide_index=True, width="stretch", height=300)
-        st.download_button("Download result (CSV)", to_csv_bytes(df), f"{key}.csv", "text/csv")
+        download_table(df, key, "Download result", key=f"lib_{key}", sheet=key[:31])
 
     with tab_con:
         st.caption("Read-only console: a single SELECT / WITH statement; executed on a read-only SQLite connection; results capped at 1,000 rows. Bind `:now` is available.")
@@ -66,7 +66,7 @@ def render() -> None:
                 res = run_readonly_query(sql, {"now": t.strftime("%Y-%m-%d %H:%M:%S")})
                 st.success(f"{len(res):,} row(s)")
                 st.dataframe(res, hide_index=True, width="stretch")
-                st.download_button("Download result (CSV)", to_csv_bytes(res), "query_result.csv", "text/csv")
+                download_table(res, "query_result", "Download result", key="console_dl", sheet="Result")
             except UnsafeSQLError as exc:
                 st.error(str(exc))
 
@@ -97,9 +97,12 @@ def render() -> None:
             sla = analytics.run_query(c, "sla_by_priority", t)
             audit = cached_audit(data_version(), 3.5, 0.90)
             html_report = executive_report_html(c, audit, t)
-        e1, e2, e3, e4 = st.columns(4)
-        e1.download_button("Requests (CSV)", to_csv_bytes(reqs.drop(columns=["description"])), "requests.csv", "text/csv", width="stretch")
-        e2.download_button("SLA report (CSV)", to_csv_bytes(reqs[reqs["sla_state"] != "N/A"][["request_id", "merchant_name", "request_type", "priority", "status", "created_at", "due_at", "resolved_at", "processing_hours", "sla_state"]]), "sla_report.csv", "text/csv", width="stretch")
-        e3.download_button("Quality findings (CSV)", to_csv_bytes(audit.issues), "quality_findings.csv", "text/csv", width="stretch")
-        e4.download_button("Executive report (HTML)", html_report, "executive_report.html", "text/html", type="primary", width="stretch")
+            xlsx_report = executive_report_xlsx(c, audit, t)
+        sla_report = reqs[reqs["sla_state"] != "N/A"][["request_id", "merchant_name", "request_type", "priority", "status", "created_at", "due_at", "resolved_at", "processing_hours", "sla_state"]]
+        download_table(reqs.drop(columns=["description"]), "requests", "Requests", sheet="Requests")
+        download_table(sla_report, "sla_report", "SLA report", sheet="SLA")
+        download_table(audit.issues, "quality_findings", "Quality findings", sheet="Findings")
+        e1, e2, _ = st.columns([1, 1, 3])
+        e1.download_button("Executive report (HTML)", html_report, "executive_report.html", "text/html", type="primary", key="ex_html")
+        e2.download_button("Executive report (Excel)", xlsx_report, "executive_report.xlsx", XLSX_MIME, type="primary", key="ex_xlsx")
         st.dataframe(sla, hide_index=True, width="stretch")
