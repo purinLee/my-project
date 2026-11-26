@@ -13,7 +13,7 @@ import streamlit as st
 from catalog_intel.config import DEMO_DATA_NOTICE, utcnow
 from catalog_intel.db import connect
 from catalog_intel.quality import run_audit
-from catalog_intel.reports import to_csv_bytes, to_excel_bytes
+from catalog_intel.reports import executive_report_html, executive_report_xlsx, to_csv_bytes, to_excel_bytes
 from catalog_intel.seed import ensure_demo_data
 
 PALETTE = ["#4f46e5", "#06b6d4", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#64748b", "#ec4899"]
@@ -166,6 +166,8 @@ def cached_audit(version: str, z: float, dup: float):
 
 
 XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+EXCEL_UI_MAX_ROWS = 50_000
+TABLE_DISPLAY_ROWS = 2_000
 
 
 def download_table(df: pd.DataFrame, stem: str, label: str = "Export", key: str | None = None, primary: bool = False, sheet: str = "Data") -> None:
@@ -173,7 +175,25 @@ def download_table(df: pd.DataFrame, stem: str, label: str = "Export", key: str 
     kind = "primary" if primary else "secondary"
     c1, c2, _ = st.columns([1, 1, 3])
     c1.download_button(f"{label} (CSV)", lambda: to_csv_bytes(df), f"{stem}.csv", "text/csv", key=f"{key or stem}_csv", type=kind, on_click="ignore")
-    c2.download_button(f"{label} (Excel)", lambda: to_excel_bytes(df, sheet), f"{stem}.xlsx", XLSX_MIME, key=f"{key or stem}_xlsx", type=kind, on_click="ignore")
+    too_big = len(df) > EXCEL_UI_MAX_ROWS
+    c2.download_button(
+        f"{label} (Excel)", lambda: to_excel_bytes(df, sheet), f"{stem}.xlsx", XLSX_MIME, key=f"{key or stem}_xlsx", type=kind, on_click="ignore",
+        disabled=too_big, help=f"Excel export is limited to {EXCEL_UI_MAX_ROWS:,} rows (about 25 s per 50,000 rows); use CSV for larger exports." if too_big else None,
+    )
+
+
+def report_builders(audit, t):
+    """Deferred executive-report generators (run on click, on a worker thread with their own DB connection)."""
+
+    def html_report() -> str:
+        with db(readonly=True) as c:
+            return executive_report_html(c, audit, t)
+
+    def xlsx_report() -> bytes:
+        with db(readonly=True) as c:
+            return executive_report_xlsx(c, audit, t)
+
+    return html_report, xlsx_report
 
 
 def flash(kind: str, message: str) -> None:

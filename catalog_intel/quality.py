@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from itertools import combinations
@@ -79,8 +80,9 @@ def detect_price_anomalies(
         else:
             z = 0.6745 * (grp["log_price"] - med) / mad
         median_price = float(np.exp(med))
-        for idx in grp.index[z.abs() > z_threshold]:
-            r = next(df.loc[[idx]].itertuples())
+        flagged = grp.index[z.abs() > z_threshold]
+        for r in df.loc[flagged].itertuples():
+            idx = r.Index
             ratio = r.price / median_price
             direction = "above" if ratio > 1 else "below"
             factor = ratio if ratio > 1 else 1 / ratio
@@ -94,26 +96,47 @@ def _digits(text: str) -> list[str]:
     return sorted(re.findall(r"\d+", text))
 
 
+TOKEN_MATCH_RATIO = 0.75
+
+
 def _similarity(a: str, b: str) -> float:
     """Token-order-insensitive similarity. Titles whose numbers differ (model 500 vs 510, size 9 vs 10,
-    256GB vs 512GB) are different products, however similar the rest of the text is."""
+    256GB vs 512GB) are different products, however similar the rest of the text is. When both titles have the
+    same number of words, every differing word pair must itself be a near-match (a typo or plural, not a
+    different word such as 'Pro' vs 'Max')."""
     if a == b:
         return 1.0
     if _digits(a) != _digits(b):
         return 0.0
     ta, tb = sorted(a.split()), sorted(b.split())
+    if len(ta) == len(tb):
+        for x, y in zip(ta, tb):
+            if x != y and SequenceMatcher(None, x, y).ratio() < TOKEN_MATCH_RATIO:
+                return 0.0
+    elif abs(len(ta) - len(tb)) > 1:
+        return 0.0
     return SequenceMatcher(None, " ".join(ta), " ".join(tb)).ratio()
 
 
 def find_duplicate_pairs(df: pd.DataFrame, threshold: float = NEAR_DUPLICATE_THRESHOLD) -> pd.DataFrame:
-    """Return candidate duplicate pairs within each merchant, blocked by (brand, category) for speed."""
-    work = df.assign(norm=df["title"].map(normalize_title))
+    """Return candidate duplicate pairs within each merchant.
+
+    Blocking keeps this near-linear: only products with the same (merchant, brand, category) AND the same set of
+    numbers in the title are compared, because titles whose numbers differ can never match (see `_similarity`).
+    """
+    # Pure-Python blocking: at 100k rows, iterating pandas groups one by one (or building a DataFrame per block)
+    # dominated the runtime, while most blocks hold a single product.
+    blocks: dict[tuple, list] = defaultdict(list)
+    for r in df[["product_id", "merchant_id", "brand", "category", "sku", "title"]].itertuples(index=False):
+        norm = normalize_title(r.title)
+        key = (r.merchant_id, r.brand if isinstance(r.brand, str) else "", r.category if isinstance(r.category, str) else "", tuple(_digits(norm)))
+        blocks[key].append((r, norm))
     pairs = []
-    for (_m, _b, _c), grp in work.groupby(["merchant_id", work["brand"].fillna(""), work["category"].fillna("")]):
-        if len(grp) < 2:
+    for members in blocks.values():
+        if len(members) < 2:
             continue
-        for a, b in combinations(grp.itertuples(), 2):
-            sim = _similarity(a.norm, b.norm)
+        for (a, a_norm), (b, b_norm) in combinations(members, 2):
+            sim = _similarity(a_norm, b_norm)
             if sim >= threshold:
                 first, second = (a, b) if a.product_id < b.product_id else (b, a)
                 pairs.append(
@@ -144,15 +167,15 @@ def detect_duplicates(df: pd.DataFrame, pairs: pd.DataFrame | None = None) -> pd
     clusters: dict[int, list[int]] = {}
     for pid in list(parent):
         clusters.setdefault(find(pid), []).append(pid)
-    by_id = df.set_index("product_id")
+    involved = df[df["product_id"].isin(parent)]
+    by_id = {r.product_id: r for r in involved.itertuples()}
     rows = []
     for members in clusters.values():
         keep = min(members)
         for pid in sorted(members):
             if pid == keep:
                 continue
-            r = next(df[df["product_id"] == pid].itertuples())
-            rows.append(_issue(r, "Duplicate Listing", "High", f"Duplicate of {by_id.loc[keep, 'sku']} ({by_id.loc[keep, 'title']})"))
+            rows.append(_issue(by_id[pid], "Duplicate Listing", "High", f"Duplicate of {by_id[keep].sku} ({by_id[keep].title})"))
     return _frame(rows)
 
 

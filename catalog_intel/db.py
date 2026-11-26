@@ -74,10 +74,24 @@ CREATE TABLE IF NOT EXISTS request_events (
     created_at  TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_events_request ON request_events(request_id);
+CREATE INDEX IF NOT EXISTS idx_events_request_time ON request_events(request_id, created_at, event_id);
 
 CREATE TABLE IF NOT EXISTS app_meta (
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS llm_call_log (
+    call_id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at        TEXT NOT NULL,
+    purpose           TEXT NOT NULL,
+    model             TEXT NOT NULL,
+    status            TEXT NOT NULL CHECK (status IN ('ok','error','invalid_output','skipped_daily_cap')),
+    latency_ms        INTEGER,
+    prompt_tokens     INTEGER,
+    completion_tokens INTEGER,
+    cost_usd          REAL,
+    error             TEXT
 );
 
 CREATE TABLE IF NOT EXISTS upload_log (

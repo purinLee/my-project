@@ -1,0 +1,343 @@
+{
+  "label": "baseline",
+  "kind": "MEASURED on synthetic data (not simulated timings)",
+  "environment": {
+    "measured_at_utc": "2026-11-26 15:35:20",
+    "git_commit": "295e928",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "processor": "Intel64 Family 6 Model 42 Stepping 7, GenuineIntel",
+    "cpu_count_logical": 8,
+    "ram_total_gb": 16.0,
+    "python": "3.10.4",
+    "pandas": "2.3.3",
+    "numpy": "2.2.6",
+    "sqlite": "3.37.2"
+  },
+  "db_file_mb": 9.5,
+  "rows": {
+    "products": 10000,
+    "merchants": 12,
+    "merchant_requests": 5000,
+    "request_events": 31637
+  },
+  "audit_summary": {
+    "products_audited": 9700,
+    "products_flagged": 2070,
+    "clean_rate": 78.7,
+    "avg_quality_score": 95.2,
+    "issues_total": 2267,
+    "by_type": {
+      "Missing Image": 799,
+      "Incomplete Metadata": 681,
+      "Price Anomaly": 414,
+      "Duplicate Listing": 370,
+      "Invalid Price": 3
+    }
+  },
+  "detector_vs_ground_truth": {
+    "duplicate": {
+      "injected": 349,
+      "flagged": 370,
+      "true_positives": 349,
+      "recall": 1.0,
+      "precision": 0.943
+    },
+    "price_anomaly": {
+      "injected": 402,
+      "flagged": 417,
+      "true_positives": 402,
+      "recall": 1.0,
+      "precision": 0.964
+    },
+    "missing_image": {
+      "injected": 799,
+      "flagged": 799,
+      "true_positives": 771,
+      "recall": 0.965,
+      "precision": 0.965
+    }
+  },
+  "sql": {
+    "analytics:processing_time_by_type": {
+      "median_ms": 4.84,
+      "min_ms": 4.78,
+      "max_ms": 10.82,
+      "rows": 8
+    },
+    "analytics:rework_by_type": {
+      "median_ms": 2.44,
+      "min_ms": 2.32,
+      "max_ms": 5.61,
+      "rows": 8
+    },
+    "analytics:sla_by_priority": {
+      "median_ms": 3.21,
+      "min_ms": 3.05,
+      "max_ms": 3.46,
+      "rows": 4
+    },
+    "analytics:weekly_volume": {
+      "median_ms": 15.04,
+      "min_ms": 14.0,
+      "max_ms": 17.56,
+      "rows": 18
+    },
+    "analytics:status_funnel": {
+      "median_ms": 0.47,
+      "min_ms": 0.46,
+      "max_ms": 0.89,
+      "rows": 8
+    },
+    "analytics:stage_durations": {
+      "median_ms": 130.14,
+      "min_ms": 121.91,
+      "max_ms": 134.7,
+      "rows": 6
+    },
+    "analytics:backlog_aging": {
+      "median_ms": 1.61,
+      "min_ms": 1.49,
+      "max_ms": 2.63,
+      "rows": 314
+    },
+    "analytics:merchant_leaderboard": {
+      "median_ms": 3.13,
+      "min_ms": 3.06,
+      "max_ms": 10.1,
+      "rows": 12
+    },
+    "analytics:assignee_workload": {
+      "median_ms": 0.28,
+      "min_ms": 0.27,
+      "max_ms": 0.41,
+      "rows": 9
+    },
+    "analytics:catalog_by_merchant": {
+      "median_ms": 13.73,
+      "min_ms": 12.85,
+      "max_ms": 16.8,
+      "rows": 12
+    },
+    "products:category_counts": {
+      "median_ms": 22.8,
+      "min_ms": 19.22,
+      "max_ms": 30.42,
+      "rows": 12
+    },
+    "products:merchant_category_avg_price": {
+      "median_ms": 16.7,
+      "min_ms": 15.57,
+      "max_ms": 22.55,
+      "rows": 32
+    },
+    "products:top_100_by_price": {
+      "median_ms": 9.67,
+      "min_ms": 9.59,
+      "max_ms": 12.4,
+      "rows": 100
+    },
+    "products:title_search_like": {
+      "median_ms": 9.56,
+      "min_ms": 9.37,
+      "max_ms": 12.21,
+      "rows": 1
+    },
+    "products:sku_lookup_unique_index": {
+      "median_ms": 0.06,
+      "min_ms": 0.06,
+      "max_ms": 0.77,
+      "rows": 1
+    },
+    "products:window_top10_per_category": {
+      "median_ms": 37.14,
+      "min_ms": 33.6,
+      "max_ms": 41.76,
+      "rows": 1
+    },
+    "products:join_tier_summary": {
+      "median_ms": 14.52,
+      "min_ms": 13.07,
+      "max_ms": 22.57,
+      "rows": 3
+    },
+    "products:missing_image_count": {
+      "median_ms": 22.47,
+      "min_ms": 21.41,
+      "max_ms": 27.83,
+      "rows": 1
+    },
+    "products:exact_title_duplicates": {
+      "median_ms": 33.61,
+      "min_ms": 32.91,
+      "max_ms": 34.79,
+      "rows": 1
+    },
+    "kpi_summary": {
+      "median_ms": 32.15,
+      "runs": 1
+    },
+    "reconcile_sql_vs_pandas": {
+      "median_ms": 110.67,
+      "runs": 1,
+      "all_match": true
+    },
+    "sku_lookup_plan": {
+      "plan": [
+        "SEARCH products USING INDEX sqlite_autoindex_products_1 (merchant_id=? AND sku=?)"
+      ]
+    }
+  },
+  "kpis": {
+    "merchants": 12,
+    "products": 9700,
+    "total_requests": 5000,
+    "open_requests": 314,
+    "completed_requests": 4555,
+    "sla_compliance_pct": 85.0,
+    "rework_rate_pct": 15.1,
+    "avg_processing_hours": 40.5,
+    "avg_first_response_hours": 6.7,
+    "breached_open": 21,
+    "at_risk_open": 10,
+    "p1_open": 11
+  },
+  "cross_checks": {
+    "missing_images": {
+      "sql": 799,
+      "audit": 799,
+      "match": true
+    },
+    "invalid_prices": {
+      "sql": 3,
+      "audit": 3,
+      "match": true
+    },
+    "reconcile_all_match": true
+  },
+  "upload_20k": {
+    "rows": 9700,
+    "csv_bytes": 2631737,
+    "xlsx_bytes": 529740,
+    "valid_csv": 9697,
+    "valid_xlsx": 9697,
+    "rejected_csv": 3,
+    "rejected_xlsx": 3,
+    "import_result": {
+      "inserted": 9697,
+      "updated": 0
+    }
+  },
+  "exports": {
+    "rows": 9700,
+    "csv_mb": 3.2,
+    "xlsx_mb": 0.9
+  },
+  "steps": {
+    "generate_database": {
+      "seconds": 3.922,
+      "rss_before_mb": 80.6,
+      "rss_peak_mb": 109.7,
+      "rss_after_mb": 98.6,
+      "rss_peak_growth_mb": 29.1
+    },
+    "audit_load_products": {
+      "seconds": 0.102,
+      "rss_before_mb": 99.7,
+      "rss_peak_mb": 103.5,
+      "rss_after_mb": 103.5,
+      "rss_peak_growth_mb": 3.8
+    },
+    "audit_find_duplicate_pairs": {
+      "seconds": 4.063,
+      "rss_before_mb": 103.5,
+      "rss_peak_mb": 107.3,
+      "rss_after_mb": 105.5,
+      "rss_peak_growth_mb": 3.9
+    },
+    "audit_detect_duplicates": {
+      "seconds": 1.2,
+      "rss_before_mb": 105.5,
+      "rss_peak_mb": 106.8,
+      "rss_after_mb": 106.8,
+      "rss_peak_growth_mb": 1.3
+    },
+    "audit_detect_price_anomalies": {
+      "seconds": 1.731,
+      "rss_before_mb": 106.8,
+      "rss_peak_mb": 107.7,
+      "rss_after_mb": 105.9,
+      "rss_peak_growth_mb": 0.9
+    },
+    "audit_detect_missing_images": {
+      "seconds": 0.299,
+      "rss_before_mb": 105.8,
+      "rss_peak_mb": 106.0,
+      "rss_after_mb": 106.0,
+      "rss_peak_growth_mb": 0.1
+    },
+    "audit_detect_incomplete_metadata": {
+      "seconds": 0.053,
+      "rss_before_mb": 105.9,
+      "rss_peak_mb": 106.0,
+      "rss_after_mb": 106.0,
+      "rss_peak_growth_mb": 0.0
+    },
+    "audit_run_audit_total": {
+      "seconds": 7.474,
+      "rss_before_mb": 105.9,
+      "rss_peak_mb": 117.0,
+      "rss_after_mb": 116.5,
+      "rss_peak_growth_mb": 11.1
+    },
+    "sql_phase_total": {
+      "seconds": 1.906,
+      "rss_before_mb": 116.6,
+      "rss_peak_mb": 120.7,
+      "rss_after_mb": 119.7,
+      "rss_peak_growth_mb": 4.0
+    },
+    "upload_build_xlsx_20k": {
+      "seconds": 4.054,
+      "rss_before_mb": 122.0,
+      "rss_peak_mb": 124.0,
+      "rss_after_mb": 124.0,
+      "rss_peak_growth_mb": 2.1
+    },
+    "upload_validate_csv_20k": {
+      "seconds": 0.373,
+      "rss_before_mb": 124.0,
+      "rss_peak_mb": 144.0,
+      "rss_after_mb": 129.5,
+      "rss_peak_growth_mb": 20.0
+    },
+    "upload_validate_xlsx_20k": {
+      "seconds": 3.333,
+      "rss_before_mb": 129.5,
+      "rss_peak_mb": 141.6,
+      "rss_after_mb": 139.2,
+      "rss_peak_growth_mb": 12.2
+    },
+    "upload_import_20k_rows": {
+      "seconds": 0.351,
+      "rss_before_mb": 139.4,
+      "rss_peak_mb": 141.7,
+      "rss_after_mb": 141.7,
+      "rss_peak_growth_mb": 2.3
+    },
+    "export_csv_full_catalog": {
+      "seconds": 0.208,
+      "rss_before_mb": 130.8,
+      "rss_peak_mb": 134.0,
+      "rss_after_mb": 134.0,
+      "rss_peak_growth_mb": 3.3
+    },
+    "export_xlsx_full_catalog": {
+      "seconds": 6.021,
+      "rss_before_mb": 134.0,
+      "rss_peak_mb": 137.3,
+      "rss_after_mb": 137.3,
+      "rss_peak_growth_mb": 3.3
+    }
+  },
+  "process_peak_rss_mb": 144.0
+}

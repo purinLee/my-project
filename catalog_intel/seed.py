@@ -325,13 +325,40 @@ def generate_requests(rng: random.Random, as_of: datetime, stats: SeedStats, cou
     return requests, events
 
 
-def seed_database(path=None, seed: int = DEFAULT_SEED, as_of: datetime | None = None, reset: bool = True) -> SeedStats:
-    """Create schema and populate it. Deterministic for a given (seed, as_of)."""
+def trim_products(rows: list[dict], target: int, stats: SeedStats, seed: int) -> list[dict]:
+    """Drop surplus plain products so the catalog has exactly `target` rows.
+
+    Rows carrying an injected defect, and originals that have an injected duplicate, are never dropped, so the
+    ground-truth sets in `stats` stay valid.
+    """
+    surplus = len(rows) - target
+    if surplus < 0:
+        raise ValueError(f"Generated only {len(rows)} products, fewer than the requested {target}.")
+    if surplus == 0:
+        return rows
+    protected = stats.injected_duplicate_skus | stats.injected_price_anomaly_skus | stats.injected_missing_image_skus
+    dup_sources = {(m, sku.rsplit("-D", 1)[0]) for m, sku in stats.injected_duplicate_skus}
+    candidates = [i for i, r in enumerate(rows) if (r["merchant_id"], r["sku"]) not in protected and (r["merchant_id"], r["sku"]) not in dup_sources]
+    drop = set(random.Random(seed + 1).sample(candidates, surplus))
+    return [r for i, r in enumerate(rows) if i not in drop]
+
+
+def seed_database(
+    path=None, seed: int = DEFAULT_SEED, as_of: datetime | None = None, reset: bool = True,
+    per_merchant: int = 150, n_requests: int = 700, n_products: int | None = None,
+) -> SeedStats:
+    """Create schema and populate it. Deterministic for a given (seed, as_of, sizes).
+
+    The defaults produce the small demo dataset. The size parameters exist for performance testing
+    (see scripts/benchmark.py) and must only be used with a separate database file.
+    """
     as_of = (as_of or utcnow()).replace(microsecond=0)
     rng = random.Random(seed)
     stats = SeedStats(seed=seed, as_of=fmt(as_of))
-    products = generate_products(rng, as_of, stats)
-    requests, events = generate_requests(rng, as_of, stats)
+    products = generate_products(rng, as_of, stats, per_merchant)
+    if n_products is not None:
+        products = trim_products(products, n_products, stats, seed)
+    requests, events = generate_requests(rng, as_of, stats, n_requests)
 
     # classify seeded requests with the deterministic model so the stored metadata is real
     from .classifier import classify_rules

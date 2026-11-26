@@ -1,0 +1,36 @@
+{
+  "kind": "MEASURED server-side script time (AppTest), excludes browser rendering",
+  "source_db": "perf_100000.db",
+  "pages": {
+    "Executive Overview": {
+      "cold_seconds": 21.56,
+      "warm_seconds": 2.53,
+      "rss_mb_after": 387.8
+    },
+    "Catalog Management": {
+      "cold_seconds": 2.0,
+      "warm_seconds": 1.87,
+      "rss_mb_after": 325.7
+    },
+    "Catalog Quality Audit": {
+      "cold_seconds": 2.12,
+      "warm_seconds": 2.18,
+      "rss_mb_after": 386.3
+    },
+    "Merchant Requests": {
+      "cold_seconds": 2.56,
+      "warm_seconds": 2.4,
+      "rss_mb_after": 313.2
+    },
+    "SQL Operations Analytics": {
+      "cold_seconds": 3.51,
+      "warm_seconds": 3.67,
+      "rss_mb_after": 365.1
+    },
+    "AI Operations Assistant": {
+      "cold_seconds": 0.27,
+      "warm_seconds": 0.24,
+      "rss_mb_after": 365.7
+    }
+  }
+}

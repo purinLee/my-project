@@ -7,7 +7,7 @@ from catalog_intel.excel import sample_upload_xlsx
 from catalog_intel.reports import to_csv_bytes
 from catalog_intel.validation import SAMPLE_CSV, UploadError, import_products, validate_dataframe, validate_upload_bytes
 from catalog_intel.db import query_df
-from ui.common import XLSX_MIME, db, download_table, flash, fmt_num, kpi_row, page_header, section, show_fig, show_flash
+from ui.common import TABLE_DISPLAY_ROWS, XLSX_MIME, db, download_table, flash, fmt_num, kpi_row, page_header, section, show_fig, show_flash
 import plotly.express as px
 
 
@@ -27,7 +27,7 @@ def render() -> None:
     ])
     names = dict(zip(merchants["merchant_id"], merchants["name"]))
 
-    tab_browse, tab_upload, tab_add = st.tabs(["Browse catalog", "Upload CSV", "Add product"])
+    tab_browse, tab_upload, tab_add = st.tabs(["Browse catalog", "Upload CSV / Excel", "Add product"])
 
     with tab_browse:
         f1, f2, f3, f4 = st.columns([1.4, 1.2, 1, 1.4])
@@ -45,9 +45,9 @@ def render() -> None:
         if text.strip():
             t = text.strip().lower()
             view = view[view["title"].str.lower().str.contains(t, regex=False) | view["sku"].str.lower().str.contains(t, regex=False)]
-        st.caption(f"{len(view):,} of {len(products):,} products")
+        st.caption(f"{len(view):,} of {len(products):,} products" + (f" - showing the first {TABLE_DISPLAY_ROWS:,}; filters and exports apply to all rows" if len(view) > TABLE_DISPLAY_ROWS else ""))
         st.dataframe(
-            view[["merchant_name", "sku", "title", "brand", "category", "price", "currency", "status", "image_url", "updated_at"]],
+            view.head(TABLE_DISPLAY_ROWS)[["merchant_name", "sku", "title", "brand", "category", "price", "currency", "status", "image_url", "updated_at"]],
             hide_index=True, width="stretch", height=430,
             column_config={"price": st.column_config.NumberColumn("Price", format="%.2f"), "merchant_name": "Merchant", "image_url": "Image URL"},
         )

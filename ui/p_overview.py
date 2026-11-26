@@ -4,8 +4,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from catalog_intel import analytics
-from catalog_intel.reports import executive_report_html, executive_report_xlsx
-from ui.common import XLSX_MIME
+from ui.common import XLSX_MIME, report_builders
 from ui.common import (
     cached_audit, data_version, db, fmt_num, insight, kpi_row, now, page_header, section, show_fig, show_flash,
 )
@@ -31,8 +30,6 @@ def render() -> None:
         weekly = analytics.run_query(c, "weekly_volume", t)
         funnel = analytics.run_query(c, "status_funnel", t)
         board = analytics.run_query(c, "merchant_leaderboard", t)
-        html_report = executive_report_html(c, audit, t)
-        xlsx_report = executive_report_xlsx(c, audit, t)
 
     s = audit.summary
     sla_ok = (k["sla_compliance_pct"] or 0) >= 90
@@ -102,7 +99,8 @@ def render() -> None:
             "Rework %": st.column_config.NumberColumn("Rework %", format="%.1f"),
         },
     )
+    html_report, xlsx_report = report_builders(audit, t)
     d1, d2, _ = st.columns([1, 1, 3])
-    d1.download_button("Executive report (HTML)", html_report, "executive_report.html", "text/html", type="primary", key="ov_html")
-    d2.download_button("Executive report (Excel)", xlsx_report, "executive_report.xlsx", XLSX_MIME, key="ov_xlsx")
+    d1.download_button("Executive report (HTML)", html_report, "executive_report.html", "text/html", type="primary", key="ov_html", on_click="ignore")
+    d2.download_button("Executive report (Excel)", xlsx_report, "executive_report.xlsx", XLSX_MIME, key="ov_xlsx", on_click="ignore")
     st.caption(f"Reference time (UTC): {t:%Y-%m-%d %H:%M}. Default seed: {DEFAULT_SEED}.")

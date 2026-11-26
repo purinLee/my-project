@@ -3,16 +3,17 @@ import streamlit as st
 
 from catalog_intel import analytics
 from catalog_intel.db import UnsafeSQLError, run_readonly_query, validate_readonly_sql
-from catalog_intel.reports import executive_report_html, executive_report_xlsx, to_csv_bytes
+from catalog_intel.reports import to_csv_bytes
 from catalog_intel.requests_mgmt import load_requests
-from ui.common import XLSX_MIME, cached_audit, data_version, db, download_table, now, page_header, section, show_fig
+from ui.common import XLSX_MIME, cached_audit, data_version, db, download_table, now, report_builders, page_header, section, show_fig
 
 SCHEMA_REF = """merchants(merchant_id, name, tier, region, vertical, onboarded_at)
 products(product_id, merchant_id, sku, title, brand, category, price, currency, image_url, description, status, created_at, updated_at)
 merchant_requests(request_id, merchant_id, subject, description, request_type, priority, status, channel, assignee, affected_items,
                   created_at, due_at, first_response_at, resolved_at, rework_count, classification_source, classification_confidence)
 request_events(event_id, request_id, event_type, from_status, to_status, actor, note, created_at)
-upload_log(upload_id, merchant_id, filename, rows_total, rows_valid, rows_rejected, rows_inserted, rows_updated, created_at)"""
+upload_log(upload_id, merchant_id, filename, rows_total, rows_valid, rows_rejected, rows_inserted, rows_updated, created_at)
+llm_call_log(call_id, created_at, purpose, model, status, latency_ms, prompt_tokens, completion_tokens, cost_usd, error)"""
 
 DEFAULT_SQL = """SELECT request_type,
        COUNT(*) AS completed,
@@ -96,13 +97,12 @@ def render() -> None:
             reqs = load_requests(c, t)
             sla = analytics.run_query(c, "sla_by_priority", t)
             audit = cached_audit(data_version(), 3.5, 0.90)
-            html_report = executive_report_html(c, audit, t)
-            xlsx_report = executive_report_xlsx(c, audit, t)
+        html_report, xlsx_report = report_builders(audit, t)
         sla_report = reqs[reqs["sla_state"] != "N/A"][["request_id", "merchant_name", "request_type", "priority", "status", "created_at", "due_at", "resolved_at", "processing_hours", "sla_state"]]
         download_table(reqs.drop(columns=["description"]), "requests", "Requests", sheet="Requests")
         download_table(sla_report, "sla_report", "SLA report", sheet="SLA")
         download_table(audit.issues, "quality_findings", "Quality findings", sheet="Findings")
         e1, e2, _ = st.columns([1, 1, 3])
-        e1.download_button("Executive report (HTML)", html_report, "executive_report.html", "text/html", type="primary", key="ex_html")
-        e2.download_button("Executive report (Excel)", xlsx_report, "executive_report.xlsx", XLSX_MIME, type="primary", key="ex_xlsx")
+        e1.download_button("Executive report (HTML)", html_report, "executive_report.html", "text/html", type="primary", key="ex_html", on_click="ignore")
+        e2.download_button("Executive report (Excel)", xlsx_report, "executive_report.xlsx", XLSX_MIME, type="primary", key="ex_xlsx", on_click="ignore")
         st.dataframe(sla, hide_index=True, width="stretch")

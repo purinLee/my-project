@@ -70,9 +70,9 @@ def to_xlsx_bytes(sheets: pd.DataFrame | dict[str, pd.DataFrame]) -> bytes:
             cells = []
             for v in row:
                 v = _value(v)
-                if isinstance(v, str):
+                if isinstance(v, str) and v.startswith("="):
                     c = WriteOnlyCell(ws, value=v)
-                    c.data_type = "s"  # force text; never a formula
+                    c.data_type = "s"  # force text; openpyxl would otherwise store "=..." as a formula
                     cells.append(c)
                 else:
                     cells.append(v)

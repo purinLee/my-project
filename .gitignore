@@ -20,3 +20,6 @@ data/*.db-shm
 Thumbs.db
 .idea/
 .vscode/
+
+# Performance test data (large synthetic databases; regenerate with scripts/benchmark.py)
+data/perf/
