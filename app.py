@@ -1,7 +1,7 @@
 """Merchant Catalog Intelligence - Streamlit entry point (Streamlit Community Cloud: main file = app.py)."""
 import streamlit as st
 
-st.set_page_config(page_title="Merchant Catalog Intelligence", page_icon=":material/insights:", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Merchant Catalog Intelligence", page_icon=":material/insights:", layout="wide", initial_sidebar_state="auto")
 
 from catalog_intel import ai  # noqa: E402
 from catalog_intel.config import ROOT, get_db_path  # noqa: E402
