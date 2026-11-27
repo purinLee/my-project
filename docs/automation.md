@@ -45,6 +45,26 @@ Per file: Catalog page -> *Upload CSV / Excel* tab -> choose merchant -> upload 
 
 The bot imports into whichever database the target app uses, so measurement and tests start a throw-away server with a temporary database.
 
+### Reproduce the 4-file sample (796 rows) used in the portfolio
+
+Windows PowerShell, project root, virtual environment active. Everything is written under `data/automation/` (git-ignored); the demo database is not touched.
+
+```powershell
+python -c "from pathlib import Path; from catalog_intel.workload import generate_workload; d=Path('data/automation/sample_inbox'); d.mkdir(parents=True, exist_ok=True); wl=generate_workload(4, 200, seed=777); [(d/n).write_bytes(b) for n,b in wl.files]; print(len(wl.files), 'files', wl.injected_counts)"
+Copy-Item data\automation\sample_inbox data\automation\inbox_py  -Recurse      # one copy per method: the Python run moves processed files away
+Copy-Item data\automation\sample_inbox data\automation\inbox_rpa -Recurse
+
+# Python pipeline (separate throw-away database)
+python scripts\run_automation.py --inbox data\automation\inbox_py --db data\automation\py_demo.db --min-age 0
+
+# UI RPA: second terminal first starts an app on another port with its own throw-away database ...
+$env:CATALOG_DB_PATH = "data\automation\rpa_demo.db"; streamlit run app.py --server.port 8502
+# ... then, in the first terminal, run the bot with a visible browser (--url must be the 8502 app, never the demo app)
+python scripts\rpa_ui_bot.py --url http://localhost:8502 --inbox data\automation\inbox_rpa --out-dir data\automation\outbox_rpa --db data\automation\rpa_demo.db --headed
+```
+
+Note that the app on port 8502 seeds its own demo catalog into `rpa_demo.db`, so the bot's quality counters (read from the Audit page) cover that whole database, not only the four uploaded files; the bot also reports `incomplete_metadata` as a fixed 0 (it does not read that figure).
+
 ## 4. How the impact was measured
 
 `scripts/measure_automation.py` builds one **seeded synthetic workload** (default: 10 merchant files, half XLSX, 4,990 rows, with known injected defects: 140 duplicate listings, 190 price anomalies, 380 missing images, 140 invalid rows) and processes the identical files three ways:
